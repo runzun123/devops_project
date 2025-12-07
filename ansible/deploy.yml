@@ -1,0 +1,34 @@
+- hosts: web
+  become: true
+
+  tasks:
+
+    - name: Update system
+      apt:
+        update_cache: yes
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Start Docker
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Pull App Code from GitHub
+      git:
+        repo: https://github.com/runzun123/devops_project.git
+        dest: /home/ubuntu/devops_project
+        force: yes
+
+    - name: Build Docker Image
+      shell: docker build -t devopsapp /home/ubuntu/devops_project
+
+    - name: Stop Old Container if Running
+      shell: docker rm -f devopsapp || true
+
+    - name: Run New Container
+      shell: docker run -d -p 80:5000 --name devopsapp devopsapp
